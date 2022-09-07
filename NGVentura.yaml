@@ -1,0 +1,144 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This Templete Creates a NatGateway in PublicVenturaProdNATALBSubnet1
+
+Parameters:
+  ExportVpcStackName:
+    Description: The name of the vpc stack that exports value i.e VENTURA-vpc
+    Type: String
+
+Resources:
+  NatGateway1EIP: 
+    Type: AWS::EC2::EIP
+    Properties: 
+      Domain: VPC
+      Tags: 
+        - Key: Name
+          Value: EIP 1
+
+  NatGateway2EIP: 
+    Type: AWS::EC2::EIP
+    Properties: 
+      Domain: VPC
+      Tags: 
+        - Key: Name
+          Value: EIP 2
+
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      AllocationId: !GetAtt NatGateway1EIP.AllocationId
+      SubnetId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PublicVenturaProdNATALBSubnet1
+      Tags: 
+        - Key: Name
+          Value: NatGateway Public Ventura Prod NAT ALB Subnet 1
+
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties: 
+      AllocationId: !GetAtt NatGateway2EIP.AllocationId
+      SubnetId:
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PublicVenturaProdALBSubnet2
+      Tags: 
+        - Key: Name
+          Value: NatGateway Public Ventura Prod ALB Subnet 2
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: Ventura Private Route Table 1
+      VpcId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-VPC
+
+  PrivateRoute1:
+    Type: AWS::EC2::Route
+    Properties: 
+      DestinationCidrBlock: 172.16.0.0/13
+      NatGatewayId: !Ref NatGateway1
+      RouteTableId: !Ref PrivateRouteTable1
+
+  PrivateVenturaProdWebSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PrivateVenturaProdWebSubnet1
+
+
+
+  PrivateVenturaProdWebSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId: !Ref PrivateRouteTable1
+      SubnetId:
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PrivateVenturaProdWebSubnet2
+
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Private Route Table 2
+      VpcId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-VPC
+
+  PrivateRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 172.16.0.0/13
+      NatGatewayId: !Ref NatGateway2
+      RouteTableId: !Ref PrivateRouteTable2
+
+  PrivateVenturaProdAPPSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId:
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PrivateVenturaProdAPPSubnet1
+
+  PrivateVenturaProdAPPSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      SubnetId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PrivateVenturaProdAPPSubnet2
+
+  PrivateRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Private Route Table 3
+      VpcId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-VPC
+
+  PrivateRoute3:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 172.16.0.0/13
+      NatGatewayId: !Ref NatGateway2
+      RouteTableId: !Ref PrivateRouteTable3
+
+  PrivateVenturaProdDBSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      SubnetId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PrivateVenturaProdDBSubnet1
+
+
+  PrivateVenturaProdDBSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      SubnetId: 
+        Fn::ImportValue: !Sub ${ExportVpcStackName}-PrivateVenturaProdDBSubnet2
+
+
+  
+
+
+        
